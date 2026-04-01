@@ -2,15 +2,19 @@
 name = "soc-openenv"
 version = "1.0.0"
 description = "SOC Log Monitoring RL Environment"
-authors = [
-    { name="Shruti", email="shrutigaikwad8766@gmail.com" }
-]
+authors = [{ name="Shruti" }]
+requires-python = ">=3.10"
+
 dependencies = [
     "fastapi",
     "uvicorn",
     "pydantic",
-    "openai"
+    "openai",
+    "openenv-core>=0.2.0"
 ]
+
+[project.scripts]
+server = "server.app:app"
 
 [build-system]
 requires = ["setuptools", "wheel"]

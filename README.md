@@ -1,4 +1,13 @@
 <<<<<<< HEAD
+---
+title: SOC OpenEnv
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
 # 🛡️ SOC Log Monitoring RL Environment
 
 A production-quality reinforcement learning environment simulating a **Security Operations Center (SOC)** log monitoring and incident response workflow.

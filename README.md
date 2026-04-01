@@ -246,18 +246,68 @@ obs = env.reset()  # Always identical for seed=42
 ```
 
 ---
-
-## 🏗️ HuggingFace Space Deployment
-
-This project is designed as a Docker Space on HuggingFace Hub.
-
-The Space exposes:
-- `GET /health` — Health check
-- `POST /reset` — Initialize episode
-- `POST /step` — Take action
-- `GET /state` — Current state
-
-Set these Space secrets:
-- `API_BASE_URL`
-- `MODEL_NAME`
-- `HF_TOKEN`
+## ⚙️ Environment Variables
+ 
+| Variable | Description |
+|---|---|
+| `API_BASE_URL` | OpenAI-compatible API base URL |
+| `MODEL_NAME` | Model to use (e.g. `gpt-4o-mini`) |
+| `HF_TOKEN` | HuggingFace / API token |
+ 
+---
+ 
+## 🔐 Security — API Keys & Tokens
+ 
+**Never hardcode your token in any file.** Always use environment variables.
+ 
+### ✅ Correct way — set in terminal before running
+ 
+```powershell
+# Windows PowerShell
+$env:API_BASE_URL = "https://router.huggingface.co/v1"
+$env:MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
+$env:HF_TOKEN = "hf_your_token_here"
+ 
+python inference.py
+```
+ 
+```bash
+# Linux / Mac
+export API_BASE_URL="https://router.huggingface.co/v1"
+export MODEL_NAME="Qwen/Qwen2.5-72B-Instruct"
+export HF_TOKEN="hf_your_token_here"
+ 
+python inference.py
+```
+ 
+### ✅ For HuggingFace Space — use Secrets
+ 
+Go to your Space → **Settings** → **Variables and Secrets** → add:
+ 
+| Secret Name | Value |
+|---|---|
+| `API_BASE_URL` | `https://router.huggingface.co/v1` |
+| `MODEL_NAME` | `Qwen/Qwen2.5-72B-Instruct` |
+| `HF_TOKEN` | `hf_your_token_here` |
+ 
+HuggingFace injects these automatically at runtime — they are never visible in your code or logs.
+ 
+### ❌ Never do this
+ 
+```python
+# DON'T commit tokens in code
+HF_TOKEN = "hf_abc123..."  # ← anyone can steal this from GitHub
+```
+ 
+### 📄 Recommended .gitignore
+ 
+Create a `.gitignore` file in your project root:
+ 
+```
+.env
+inference_results.json
+__pycache__/
+*.pyc
+*.pyc
+.sixth/
+```

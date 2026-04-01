@@ -23,10 +23,10 @@ from tasks import easy, medium, hard
 
 
 # ── Config ──────────────────────────────────────────────────────────────────
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
-
+# Line 26-28 — change to:
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+HF_TOKEN = os.environ.get("HF_TOKEN", "")  # ← never hardcode token here
 client = OpenAI(
     base_url=API_BASE_URL,
     api_key=HF_TOKEN or "sk-placeholder",

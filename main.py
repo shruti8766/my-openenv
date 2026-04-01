@@ -2,7 +2,7 @@
 SOC Environment API Server
 Exposes /reset and /step endpoints compliant with OpenEnv spec.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
@@ -19,16 +19,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# In-memory session store (single session for simplicity)
+# In-memory session store
 _sessions: Dict[str, SOCEnvironment] = {}
-
-
-class ResetRequest(BaseModel):
-    task_id: Optional[str] = "easy"
-    seed: Optional[int] = None
-    session_id: Optional[str] = "default"
-
-    model_config = {"extra": "ignore"}
 
 
 class StepRequest(BaseModel):
@@ -58,38 +50,64 @@ def health():
 
 
 @app.post("/reset")
-def reset(req: Optional[ResetRequest] = None):
-    """Initialize a new episode."""
+async def reset(request: Request):
+    """Initialize a new episode. Accepts empty, null, or JSON body."""
+    # Parse body safely — works with empty, null, or missing body
     try:
-        if req is None:
-            req = ResetRequest()
-        env = SOCEnvironment(task_id=req.task_id, seed=req.seed)
+        body = await request.body()
+        if body:
+            data = json.loads(body)
+            if not isinstance(data, dict):
+                data = {}
+        else:
+            data = {}
+    except Exception:
+        data = {}
+
+    task_id = data.get("task_id", "easy")
+    seed = data.get("seed", None)
+    session_id = data.get("session_id", "default")
+
+    try:
+        env = SOCEnvironment(task_id=task_id, seed=seed)
         obs = env.reset()
-        _sessions[req.session_id] = env
+        _sessions[session_id] = env
         return {
             "observation": obs.model_dump(),
             "ground_truth_keys": list(env.ground_truth().keys()),
-            "session_id": req.session_id,
-            "task_id": req.task_id,
+            "session_id": session_id,
+            "task_id": task_id,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/step")
-def step(req: StepRequest):
-    """Take an action in the environment."""
-    env = _sessions.get(req.session_id)
+async def step(request: Request):
+    """Take an action. Accepts empty or JSON body."""
+    try:
+        body = await request.body()
+        if body:
+            data = json.loads(body)
+            if not isinstance(data, dict):
+                data = {}
+        else:
+            data = {}
+    except Exception:
+        data = {}
+
+    session_id = data.get("session_id", "default")
+    env = _sessions.get(session_id)
     if env is None:
-        raise HTTPException(status_code=404, detail=f"Session '{req.session_id}' not found. Call /reset first.")
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found. Call /reset first.")
 
     try:
         action = Action(
-            decision=ActionDecision(req.decision),
-            severity_assessment=SeverityLevel(req.severity_assessment),
-            anomaly_detected=req.anomaly_detected,
-            anomalous_log_indices=req.anomalous_log_indices,
-            reasoning=req.reasoning,
+            decision=ActionDecision(data.get("decision", "ignore")),
+            severity_assessment=SeverityLevel(data.get("severity_assessment", "none")),
+            anomaly_detected=bool(data.get("anomaly_detected", False)),
+            anomalous_log_indices=data.get("anomalous_log_indices", []),
+            reasoning=data.get("reasoning", None),
         )
         result = env.step(action)
         return {

@@ -24,18 +24,22 @@ _sessions: Dict[str, SOCEnvironment] = {}
 
 
 class ResetRequest(BaseModel):
-    task_id: str = "easy"
+    task_id: Optional[str] = "easy"
     seed: Optional[int] = None
-    session_id: str = "default"
+    session_id: Optional[str] = "default"
+
+    model_config = {"extra": "ignore"}
 
 
 class StepRequest(BaseModel):
-    session_id: str = "default"
-    decision: str = "ignore"
-    severity_assessment: str = "none"
-    anomaly_detected: bool = False
-    anomalous_log_indices: list = []
+    session_id: Optional[str] = "default"
+    decision: Optional[str] = "ignore"
+    severity_assessment: Optional[str] = "none"
+    anomaly_detected: Optional[bool] = False
+    anomalous_log_indices: Optional[list] = []
     reasoning: Optional[str] = None
+
+    model_config = {"extra": "ignore"}
 
 
 @app.get("/")
@@ -54,9 +58,11 @@ def health():
 
 
 @app.post("/reset")
-def reset(req: ResetRequest):
+def reset(req: Optional[ResetRequest] = None):
     """Initialize a new episode."""
     try:
+        if req is None:
+            req = ResetRequest()
         env = SOCEnvironment(task_id=req.task_id, seed=req.seed)
         obs = env.reset()
         _sessions[req.session_id] = env

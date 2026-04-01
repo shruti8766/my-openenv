@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 title: SOC OpenEnv
 emoji: 🤖
@@ -262,15 +261,3 @@ Set these Space secrets:
 - `API_BASE_URL`
 - `MODEL_NAME`
 - `HF_TOKEN`
-=======
----
-title: Soc Openenv
-emoji: 😻
-colorFrom: blue
-colorTo: yellow
-sdk: docker
-pinned: false
----
-
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
->>>>>>> f9e08c5033c547df6bbf2c68f6bbebd25bf1d3ef

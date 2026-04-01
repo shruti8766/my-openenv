@@ -1,0 +1,129 @@
+name: soc-log-monitoring-env
+version: "1.0.0"
+description: >
+  A Security Operations Center (SOC) log monitoring and incident response
+  reinforcement learning environment. An AI agent analyzes system logs,
+  detects anomalies, classifies severity, and recommends appropriate
+  response actions — simulating a real-world SOC workflow.
+
+author: SOC-RL-Team
+license: MIT
+
+environment:
+  type: episodic
+  observation_space:
+    logs:
+      type: list
+      items:
+        timestamp: string
+        service: string
+        level: "INFO | WARNING | ERROR | CRITICAL"
+        message: string
+        source_ip: string
+        user: string
+    system_status:
+      type: dict
+      fields:
+        cpu_usage: float [0, 100]
+        memory_usage: float [0, 100]
+        disk_usage: float [0, 100]
+        network_in_mbps: float
+        network_out_mbps: float
+        services: dict[str, str]
+        active_connections: int
+        failed_login_attempts: int
+    previous_actions:
+      type: list[string]
+    step_count:
+      type: int
+
+  action_space:
+    decision:
+      type: enum
+      values: [ignore, alert_admin, restart_service, escalate]
+    severity_assessment:
+      type: enum
+      values: [none, low, medium, high]
+    anomaly_detected:
+      type: bool
+    anomalous_log_indices:
+      type: list[int]
+
+  reward:
+    type: continuous
+    range: [-0.35, 1.0]
+    components:
+      anomaly_detection: 0.4
+      severity_classification: 0.3
+      action_decision: 0.3
+    penalties:
+      missed_anomaly: -0.20
+      dangerous_ignore: -0.15
+      wrong_action: -0.15
+
+tasks:
+  - id: easy
+    name: "Single Log Anomaly Detection"
+    difficulty: easy
+    description: >
+      Given a single system log entry and current system metrics,
+      determine whether the log is anomalous. If anomalous, classify
+      severity and choose appropriate action.
+    max_steps: 1
+    scoring:
+      method: deterministic
+      range: [0.0, 1.0]
+      partial_credit: true
+
+  - id: medium
+    name: "Multi-Log Anomaly Identification"
+    difficulty: medium
+    description: >
+      Given 4-8 system log entries and current system metrics, identify
+      which logs are anomalous, determine overall severity, and recommend
+      an appropriate response action.
+    max_steps: 3
+    scoring:
+      method: deterministic
+      range: [0.0, 1.0]
+      partial_credit: true
+
+  - id: hard
+    name: "Full SOC Incident Response"
+    difficulty: hard
+    description: >
+      Given 6-12 logs showing a coordinated attack pattern alongside
+      live system metrics showing degradation, identify the incident type,
+      classify severity, pinpoint all affected log entries, and recommend
+      the most effective response action.
+    max_steps: 5
+    scoring:
+      method: deterministic
+      range: [0.0, 1.0]
+      partial_credit: true
+
+api:
+  endpoints:
+    reset: POST /reset
+    step: POST /step
+    state: GET /state
+    health: GET /health
+  port: 7860
+  framework: fastapi
+
+metadata:
+  real_world_domain: cybersecurity
+  use_case: security-operations-center
+  tags:
+    - soc
+    - log-analysis
+    - anomaly-detection
+    - incident-response
+    - cybersecurity
+    - nlp
+  compute_requirements:
+    min_cpu: 2
+    min_memory_gb: 4
+    max_runtime_minutes: 20
+  reproducible: true
+  seed_support: true

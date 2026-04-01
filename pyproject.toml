@@ -1,0 +1,17 @@
+[project]
+name = "soc-openenv"
+version = "1.0.0"
+description = "SOC Log Monitoring RL Environment"
+authors = [
+    { name="Shruti", email="shrutigaikwad8766@gmail.com" }
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "openai"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
